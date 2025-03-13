@@ -1,7 +1,7 @@
 const WebSocket = require('ws');
 const os = require('os');
 
-// temp data will implement grabbing data from db
+// temp data will implement grabbing data from database
 const users = {
     admin: { password: 'adminpass', role: 'admin' },
     user: { password: 'userpass', role: 'user' }
