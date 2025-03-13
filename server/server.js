@@ -18,7 +18,6 @@ server.on('connection', (ws) => {
     ws.on('message', (message) => {
         console.log(`Received: ${message}`);
 
-        // Convert message to string if it's a buffer
         const messageStr = message.toString();
 
         if (!isLoggedIn) {
