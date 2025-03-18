@@ -170,7 +170,7 @@ function deleteAccount(username, ws) {
         ws.send(JSON.stringify({ error: 'Permission denied' }));
         return;
     }
-    
+
     db.get("SELECT * FROM Users WHERE Username = ?", [username], (err, row) => {
         if (err) {
             ws.send(JSON.stringify({ error: 'Database error' }));
@@ -203,16 +203,28 @@ function notifyClients() {
     });
 }
 
-// function to get local ip
-const networkInterfaces = os.networkInterfaces();
-let localIP = '';
-for (const interfaceName in networkInterfaces) {
-    networkInterfaces[interfaceName].forEach((interfaceDetails) => {
-        if (interfaceDetails.family === 'IPv4' && !interfaceDetails.internal) {
-            localIP = interfaceDetails.address;
+// get ip address 
+function getLocalIP() {
+    const networkInterfaces = os.networkInterfaces();
+    for (const interfaceName in networkInterfaces) {
+        const interfaces = networkInterfaces[interfaceName];
+        for (const interfaceDetails of interfaces) {
+            if (
+                interfaceDetails.family === 'IPv4' && 
+                !interfaceDetails.internal
+            ) {
+                return interfaceDetails.address;
+            }
         }
-    });
+    }
+    return null;
 }
 
-// should display the local ip it is running on (might not work)
-console.log('WebSocket server running on ws://' + localIP + ':8080');
+const localIP = getLocalIP();
+
+// console print the ip of server
+if (localIP) {
+    console.log(`WebSocket server running on ws://${localIP}:8080`);
+} else {
+    console.log('Could not determine the local IP address.');
+}
