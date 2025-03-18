@@ -68,6 +68,13 @@ server.on('connection', (ws) => {
                         ws.send(JSON.stringify({ error: 'Permission denied' }));
                     }
                     break;
+                case 'get_users':
+                    if (userRole === 'admin') {
+                        getUsers(ws);  // Get all users if the user is an admin
+                    } else {
+                        ws.send(JSON.stringify({ error: 'Permission denied' }));
+                    }
+                    break;
             }
         }
     });
@@ -191,6 +198,17 @@ function deleteAccount(username, ws) {
                 ws.send(JSON.stringify({ error: 'Failed to delete account' }));
             }
         });
+    });
+}
+
+// get users
+function getUsers(ws) {
+    db.all("SELECT Username, Role FROM Users", [], (err, rows) => {
+        if (err) {
+            ws.send(JSON.stringify({ error: 'Database error' }));
+        } else {
+            ws.send(JSON.stringify({ users: rows }));
+        }
     });
 }
 
