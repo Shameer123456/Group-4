@@ -61,6 +61,13 @@ server.on('connection', (ws) => {
                         ws.send(JSON.stringify({ error: 'Permission denied' }));
                     }
                     break;
+                case 'delete_account':
+                    if (userRole === 'admin') {
+                        deleteAccount(data.username, ws); 
+                    } else {
+                        ws.send(JSON.stringify({ error: 'Permission denied' }));
+                    }
+                    break;
             }
         }
     });
@@ -154,6 +161,36 @@ function createAccount(username, password, role, ws) {
         } else {
             ws.send(JSON.stringify({ error: 'Failed to create account' }));
         }
+    });
+}
+
+// handling account deletion
+function deleteAccount(username, ws) {
+    if (userRole !== 'admin') {
+        ws.send(JSON.stringify({ error: 'Permission denied' }));
+        return;
+    }
+    
+    db.get("SELECT * FROM Users WHERE Username = ?", [username], (err, row) => {
+        if (err) {
+            ws.send(JSON.stringify({ error: 'Database error' }));
+            return;
+        }
+
+        if (!row) {
+            ws.send(JSON.stringify({ error: 'User not found' }));
+            return;
+        }
+
+        const sql = "DELETE FROM Users WHERE Username = ?";
+        db.run(sql, [username], function (err) {
+            if (!err) {
+                ws.send(JSON.stringify({ success: 'Account deleted' }));
+                notifyClients(); 
+            } else {
+                ws.send(JSON.stringify({ error: 'Failed to delete account' }));
+            }
+        });
     });
 }
 
