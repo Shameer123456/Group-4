@@ -23,8 +23,15 @@ server.on('connection', (ws) => {
     let isLoggedIn = false;
     let userRole = '';
 
+    
     ws.on('message', (message) => {
-        const data = JSON.parse(message);
+        try {
+            const data = JSON.parse(message);
+        }
+        catch {
+            console.log("Unexpected message (not JSON)");
+            return;
+        }
 
         if (data.action === 'login') {
             db.get("SELECT Username, Role FROM Users WHERE Username = ? AND PasswordHash = ?", [data.username, data.password], (err, row) => {
