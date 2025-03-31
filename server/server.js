@@ -40,9 +40,9 @@ server.on('connection', (ws) => {
                 } else if (row) {
                     isLoggedIn = true;
                     userRole = row.Role;
-                    ws.send(JSON.stringify({ success: 'Login successful', role: userRole }));
+                    ws.send(JSON.stringify({ success: isLoggedIn, role: userRole }));
                 } else {
-                    ws.send(JSON.stringify({ error: 'Invalid credentials' }));
+                    ws.send(JSON.stringify({ success: isLoggedIn })); 
                 }
             });
         }
