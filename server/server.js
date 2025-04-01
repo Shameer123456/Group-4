@@ -30,7 +30,7 @@ server.on('connection', (ws) => {
         let data;
         try {
             data = JSON.parse(message);
-            custom_log(false, "Message received:" + message);
+            custom_log(false, "Message received: " + message); // remove on release version
         } catch {
             sendMessage(ws, 'error', { message: 'Invalid JSON format' });
             return;
@@ -81,7 +81,7 @@ server.on('connection', (ws) => {
 function sendMessage(ws, type, data) {
     const message = JSON.stringify({ type, data });
     ws.send(message);
-    custom_log(false, "Message sent:" + message);
+    custom_log(false, "Message sent: " + message); // remove on release 
 }
 
 // login
