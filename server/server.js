@@ -23,8 +23,10 @@ let clients = new Set();
 server.on('connection', (ws) => {
     custom_log(false, 'Client connected');
     clients.add(ws);
-    let isLoggedIn = false;
-    let userRole = '';
+
+    // declare these for each client
+    ws.isLoggedIn = false;
+    ws.userRole = '';
 
     ws.on('message', (message) => {
         let data;
@@ -41,7 +43,7 @@ server.on('connection', (ws) => {
                 handleLogin(data, ws);
                 break;
             default:
-                if (!isLoggedIn) {
+                if (!ws.isLoggedIn) {
                     sendMessage(ws, 'error', { message: 'Unauthorized access' });
                     return;
                 }
@@ -52,15 +54,15 @@ server.on('connection', (ws) => {
                     case 'update': updateRecord(data.table, data.id, data.values, ws); break;
                     case 'delete': deleteRecord(data.table, data.id, ws); break;
                     case 'create_account':
-                        if (userRole === 'admin') createAccount(data.username, data.password, data.role, ws);
+                        if (ws.userRole === 'admin') createAccount(data.username, data.password, data.role, ws);
                         else sendMessage(ws, 'error', { message: 'Permission denied' });
                         break;
                     case 'delete_account':
-                        if (userRole === 'admin') deleteAccount(data.username, ws);
+                        if (ws.userRole === 'admin') deleteAccount(data.username, ws);
                         else sendMessage(ws, 'error', { message: 'Permission denied' });
                         break;
                     case 'get_users':
-                        if (userRole === 'admin') getUsers(ws);
+                        if (ws.userRole === 'admin') getUsers(ws);
                         else sendMessage(ws, 'error', { message: 'Permission denied' });
                         break;
                     default:
@@ -73,6 +75,11 @@ server.on('connection', (ws) => {
 
     ws.on('close', () => {
         clients.delete(ws);
+
+        // clear client data on close
+        ws.isLoggedIn = false;
+        ws.userRole = '';
+        
         custom_log(true, 'Client disconnected');
     });
 });
@@ -90,9 +97,9 @@ function handleLogin(data, ws) {
         if (err) {
             sendMessage(ws, 'error', { message: 'Database error' });
         } else if (row) {
-            isLoggedIn = true;
-            userRole = row.Role;
-            sendMessage(ws, 'login_success', { role: userRole });
+            ws.isLoggedIn = true;
+            ws.userRole = row.Role;
+            sendMessage(ws, 'login_success', { role: ws.userRole });
         } else {
             sendMessage(ws, 'login_failed', {});
         }
