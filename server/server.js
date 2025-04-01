@@ -2,23 +2,32 @@ const WebSocket = require('ws');
 const os = require('os');
 const sqlite3 = require('sqlite3').verbose();
 
-const db = new sqlite3.Database('database.db', (err) => {
-    if (err) console.error('Database connection error:', err.message);
-    else console.log('Connected to SQLite database.');
+let settings = {
+    database_name: 'database.db',
+    port: 8080
+}
+
+// simple function to make the console prints easier to see if an error or not
+function custom_log(is_error, message) {
+    console.log(`${is_error ? '[-]' : '[+]'} ${message}`);
+}
+
+// connect to the database
+const db = new sqlite3.Database(settings.database_name, (err) => {
+    custom_log(!!err, err ? 'failed to connect to the database!' : 'successfully connected to the database!');
 });
 
-const server = new WebSocket.Server({ port: 8080 });
+const server = new WebSocket.Server({ port: settings.port });
 let clients = new Set();
 
 server.on('connection', (ws) => {
-    console.log('Client connected');
+    custom_log(false, 'Client connected');
     clients.add(ws);
     let isLoggedIn = false;
     let userRole = '';
 
     ws.on('message', (message) => {
         let data;
-        console.log("received message");
         try {
             data = JSON.parse(message);
         } catch {
@@ -63,11 +72,11 @@ server.on('connection', (ws) => {
 
     ws.on('close', () => {
         clients.delete(ws);
-        console.log('Client disconnected');
+        custom_log(true, 'Client disconnected');
     });
 });
 
-// helper function to send structured messages
+// helper function just makes it easier to do communication
 function sendMessage(ws, type, data) {
     ws.send(JSON.stringify({ type, data }));
 }
@@ -149,6 +158,9 @@ function deleteRecord(table, id, ws) {
     });
 }
 
+                            
+// needs admin to be able to call functions bellow
+
 // create account
 function createAccount(username, password, role, ws) {
     db.run("INSERT INTO Users (Username, PasswordHash, Role) VALUES (?, ?, ?)", [username, password, role], function (err) {
@@ -179,13 +191,16 @@ function deleteAccount(username, ws) {
     });
 }
 
-// get users
+// send users to client 
 function getUsers(ws) {
     db.all("SELECT Username, Role FROM Users", [], (err, rows) => {
         if (!err) sendMessage(ws, 'users_data', rows);
         else sendMessage(ws, 'error', { message: 'Database error' });
     });
 }
+
+
+//cant be called from client at any point will be a response to database update
 
 // notify all clients of updates
 function notifyClients() {
@@ -211,4 +226,4 @@ function getLocalIP() {
 }
 
 const localIP = getLocalIP();
-console.log(`WebSocket server running on ws://${localIP || 'localhost'}:8080`);
+custom_log(false, `server running at ws://${localIP || 'localhost'}:${settings.port}`);
