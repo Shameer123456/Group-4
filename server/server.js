@@ -30,6 +30,7 @@ server.on('connection', (ws) => {
         let data;
         try {
             data = JSON.parse(message);
+            custom_log(false, "Message received:" + message);
         } catch {
             sendMessage(ws, 'error', { message: 'Invalid JSON format' });
             return;
@@ -78,7 +79,9 @@ server.on('connection', (ws) => {
 
 // helper function just makes it easier to do communication
 function sendMessage(ws, type, data) {
-    ws.send(JSON.stringify({ type, data }));
+    const message = JSON.stringify({ type, data });
+    ws.send(message);
+    custom_log(false, "Message sent:" + message);
 }
 
 // login
