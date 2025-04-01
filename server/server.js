@@ -99,7 +99,7 @@ function handleLogin(data, ws) {
         } else if (row) {
             ws.isLoggedIn = true;
             ws.userRole = row.Role;
-            sendMessage(ws, 'login_success', { role: ws.userRole });
+            sendMessage(ws, 'login_success', { username: row.Username, role: row.Role });
         } else {
             sendMessage(ws, 'login_failed', {});
         }
@@ -210,7 +210,7 @@ function getUsers(ws) {
 }
 
 
-//cant be called from client at any point will be a response to database update
+// cant be called from client at any point will be a response to database update
 
 // notify all clients of updates
 function notifyClients() {
