@@ -61,6 +61,10 @@ server.on('connection', (ws) => {
                         if (ws.userRole === 'admin') deleteAccount(data.username, ws);
                         else sendMessage(ws, 'error', { message: 'Permission denied' });
                         break;
+                    case 'update_password':
+                        if (ws.userRole === 'admin') updatePassword(data.username, data.password, ws);
+                        else sendMessage(ws, 'error', { message: 'Permission denied' });
+                        break;
                     case 'get_users':
                         if (ws.userRole === 'admin') getUsers(ws);
                         else sendMessage(ws, 'error', { message: 'Permission denied' });
@@ -201,6 +205,24 @@ function deleteAccount(username, ws) {
     });
 }
 
+// update password
+function updatePassword(username, password, ws) {
+    db.get("SELECT * FROM Users WHERE Username = ?", [username], (err, row) => {
+        if (err || !row) {
+            sendMessage(ws, 'error', { message: 'User not found' });
+            return;
+        }
+        db.run("UPDATE Users SET PasswordHash = ? WHERE Username = ?", [password, username], function (err) {
+            if (!err) {
+                sendMessage(ws, 'update_password_success', {});
+                notifyClients();
+            } else {
+                sendMessage(ws, 'error', { message: 'Failed to update account' });
+            }
+        });
+    });
+}
+
 // send users to client 
 function getUsers(ws) {
     db.all("SELECT Username, Role FROM Users", [], (err, rows) => {
@@ -210,7 +232,7 @@ function getUsers(ws) {
 }
 
 
-// cant be called from client at any point will be a response to database update
+// can't be called from client at any point will be a response to database update
 
 // notify all clients of updates
 function notifyClients() {
