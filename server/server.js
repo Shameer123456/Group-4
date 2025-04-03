@@ -124,6 +124,9 @@ function fetchAllData(ws) {
     db.all("SELECT * FROM Maintenances", [], (err, maintenances) => {
         if (!err) sendMessage(ws, 'maintenances_data', maintenances);
     });
+    db.all("SELECT * FROM Rents", [], (err, rents) => {
+        if (!err) sendMessage(ws, 'rents_data', rents);
+    });
     db.all("SELECT * FROM QuickLinks", [], (err, quickLinks) => {
         if (!err) sendMessage(ws, 'quicklinks_data', quickLinks);
     });
